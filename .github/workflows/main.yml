@@ -42,7 +42,7 @@ jobs:
 
   tests:
     needs: update
-    if: ${{ needs.update.outputs.changed == "true" }}
+    if: needs.update.outputs.changed
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v4
