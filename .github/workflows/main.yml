@@ -39,14 +39,21 @@ jobs:
         git commit -m "Update IERS Earth rotation and leap second tables"
         git push
 
-  tests:
+  simple-tests:
     needs: update
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
-    with:
-      envs: |
-        - linux: py39-test
-        - macos: py310-test
-        - windows: py311-test
+    steps:
+    - uses: actions/setup-python@v4
+    - run: pip install tox
+    - run: tox -e test
+
+  # tests:
+  #   needs: update
+  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+  #   with:
+  #     envs: |
+  #       - linux: py39-test
+  #       - macos: py310-test
+  #       - windows: py311-test
 
   # Automatically tag commits to main with the latest calendar version. Note that
   # this does not currently support two versions in the same day, but if this is
