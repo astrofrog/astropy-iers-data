@@ -35,8 +35,10 @@ jobs:
         git config user.email github-actions@github.com
         git add astropy_iers_data/data
         git commit -m "Update IERS Earth rotation and leap second tables"
+        git push
 
   tests:
+    needs: update
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
       envs: |
