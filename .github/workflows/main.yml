@@ -35,7 +35,7 @@ jobs:
         git config user.email github-actions@github.com
         git add astropy_iers_data/data
         # TMP to check tests are sensitive to the new data
-        git rm -r astropy_iers_data/data
+        git rm -rf astropy_iers_data/data
         git commit -m "Update IERS Earth rotation and leap second tables"
         git push
 
