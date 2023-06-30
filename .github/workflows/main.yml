@@ -9,7 +9,7 @@ on:
 
 jobs:
 
-  update-iers:
+  update:
     name: Auto-update IERS tables
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'astrofrog/astropy-iers-data' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
@@ -50,7 +50,7 @@ jobs:
   tag:
     name: Tag latest commit to main using calendar version
     needs: tests
-    if: ${{ steps.check.outputs.changed }}
+    if: ${{ jobs.update.changed }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -70,7 +70,7 @@ jobs:
   publish:
     name: Publish the release to PyPI
     needs: tag
-    if: ${{ steps.check.outputs.changed }}
+    if: ${{ jobs.update.changed }}
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish_pure_python.yml@v1
     with:
       # The usual tag condition for uploading to PyPI doesn't work because the tag has just been
