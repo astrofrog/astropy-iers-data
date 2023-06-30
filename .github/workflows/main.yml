@@ -3,8 +3,38 @@ name: CI
 on:
   push:
   pull_request:
+  schedule:
+    - cron: '0 0 * * MON'
+  workflow_dispatch:
 
 jobs:
+
+  update-iers:
+    name: Auto-update IERS tables
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'astrofrog/astropy-iers-data' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Download latest IERS files
+      run: ./update_data.sh
+    - outputs:
+      changed: ${{ steps.check.outputs.changed }}
+    - name: Check for changes
+      id: check
+      run: |
+        if git diff --exit-code; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Commit changes
+      if: ${{ steps.check.outputs.changed }}
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add astropy_iers_data/data
+        git commit -m "Update IERS Earth rotation and leap second tables"
 
   tests:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
@@ -18,8 +48,9 @@ jobs:
   # this does not currently support two versions in the same day, but if this is
   # needed exceptionally, it is possible to manually push a tag.
   tag:
-    needs: tests
     name: Tag latest commit to main using calendar version
+    needs: tests
+    if: ${{ steps.check.outputs.changed }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -37,12 +68,14 @@ jobs:
           custom_tag: ${{ steps.tag_name.outputs.version }}
 
   publish:
+    name: Publish the release to PyPI
     needs: tag
+    if: ${{ steps.check.outputs.changed }}
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish_pure_python.yml@v1
     with:
       # The usual tag condition for uploading to PyPI doesn't work because the tag has just been
       # created, but we know we can run on any push to main since this is the same condition for
-      # making a tag above.  
+      # making a tag above.
       upload_to_pypi: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
     secrets:
       pypi_token: ${{ secrets.PYPI_TOKEN }}
