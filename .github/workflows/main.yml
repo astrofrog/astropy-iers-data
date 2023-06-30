@@ -39,7 +39,7 @@ jobs:
         git commit -m "Update IERS Earth rotation and leap second tables"
         git push
 
-  simple-tests:
+  tests:
     needs: update
     runs-on: ubuntu-latest
     steps:
