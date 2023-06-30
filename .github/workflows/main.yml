@@ -30,7 +30,7 @@ jobs:
           echo "changed=false" >> "$GITHUB_OUTPUT"
         fi
     - name: Commit changes
-      if: ${{ steps.check.outputs.changed }}
+      if: steps.check.outputs.changed
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
@@ -45,6 +45,8 @@ jobs:
     if: needs.update.outputs.changed
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
     - uses: actions/setup-python@v4
     - run: pip install tox
     - run: tox -e test
