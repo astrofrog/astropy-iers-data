@@ -42,9 +42,10 @@ jobs:
 
   tests:
     needs: update
-    if: needs.jobs.update.changed
+    # if: ${{ needs.jobs.update.changed == "true" }}
     runs-on: ubuntu-latest
     steps:
+    - run: echo "${{ needs.jobs.update.changed }}"
     - uses: actions/setup-python@v4
     - run: pip install tox
     - run: tox -e test
@@ -61,7 +62,7 @@ jobs:
   tag:
     name: Tag latest commit to main using calendar version
     needs: tests
-    if: needs.jobs.update.changed
+    if: ${{ needs.jobs.update.changed }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -81,7 +82,7 @@ jobs:
   publish:
     name: Publish the release to PyPI
     needs: tag
-    if: needs.jobs.update.changed
+    if: ${{ needs.jobs.update.changed }}
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish_pure_python.yml@v1
     with:
       # The usual tag condition for uploading to PyPI doesn't work because the tag has just been
