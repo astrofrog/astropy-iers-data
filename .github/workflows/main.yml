@@ -12,7 +12,8 @@ jobs:
   update:
     name: Auto-update IERS tables
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'astrofrog/astropy-iers-data' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
+    # if: ${{ github.repository == 'astrofrog/astropy-iers-data' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref_name == 'main' }}
+    if: ${{ github.repository == 'astrofrog/astropy-iers-data' && github.event_name == 'push' && github.ref_name == 'main' }}
     outputs:
       changed: ${{ steps.check.outputs.changed }}
     steps:
@@ -41,6 +42,7 @@ jobs:
 
   tests:
     needs: update
+    if: ${{ needs.jobs.check.update.changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v4
@@ -56,13 +58,10 @@ jobs:
   #       - macos: py310-test
   #       - windows: py311-test
 
-  # Automatically tag commits to main with the latest calendar version. Note that
-  # this does not currently support two versions in the same day, but if this is
-  # needed exceptionally, it is possible to manually push a tag.
   tag:
     name: Tag latest commit to main using calendar version
     needs: tests
-    if: ${{ needs.jobs.update.changed }}
+    if: ${{ needs.jobs.check.update.changed }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -82,7 +81,7 @@ jobs:
   publish:
     name: Publish the release to PyPI
     needs: tag
-    if: ${{ needs.jobs.update.changed }}
+    if: ${{ needs.jobs.check.update.changed }}
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish_pure_python.yml@v1
     with:
       # The usual tag condition for uploading to PyPI doesn't work because the tag has just been
