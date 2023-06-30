@@ -41,6 +41,7 @@ jobs:
 
   simple-tests:
     needs: update
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v4
     - run: pip install tox
